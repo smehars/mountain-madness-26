@@ -51,7 +51,7 @@ h1{
   font-weight: bold;
 }
 
-#primary-button{
+.primary-button{
   background-color: var(--baby-pink);
   color: var(--bg-primary);
   padding: 0.75rem 1.5rem;
