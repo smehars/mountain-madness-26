@@ -8,7 +8,7 @@ function getRandomInt(min, max) {
 }
 
 function App() {
-  const [pokemonID, setPokemonID] = useState(getRandomInt(1, 1025));
+  const [pokemonID, setPokemonID] = useState(getRandomInt(1, 152));
   const [pokemonName, setPokemonName] = useState("");
   const [pokemonType, setPokemonType] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -40,7 +40,7 @@ function App() {
   }, []);
 
   function getNewPokemon() {
-    const newID = getRandomInt(1, 1025);
+    const newID = getRandomInt(1, 152);
     setPokemonID(newID);
     fetchPokemonName(newID);
     setRevealed(false);
@@ -53,19 +53,21 @@ function App() {
   return (
     <div id="main-div">
       <h1>Pokemon Cry Wordle</h1>
-      <Analyzer audioUrl={audioUrl} terrainColor={terrainColor} />
-      <button className="primary-button" onClick={() => setRevealed(true)}>
-        Reveal Type
-      </button>
-      <button className="primary-button" onClick={getNewPokemon}>
-        New Pokemon
-      </button>
-      <p> The pokemon is {pokemonName}</p>
 
-      {/* <button id='primary-button' onClick={playAudio}>
-        Play Sound
-      </button> */}
-      
+      {/* Graph + play button rendered by Analyzer */}
+      <Analyzer audioUrl={audioUrl} terrainColor={terrainColor} />
+
+      {/* Buttons arranged horizontally beneath the graph */}
+      <div className="button-row">
+        <button className="primary-button" onClick={() => setRevealed(true)}>
+          Reveal Type
+        </button>
+        <button className="primary-button" onClick={getNewPokemon}>
+          New Pokemon
+        </button>
+      </div>
+
+      <p className="reveal-text">The pokemon is {pokemonName}</p>
     </div>
   );
 }
