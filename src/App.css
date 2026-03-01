@@ -28,19 +28,14 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-  height: 100vh;
-  overflow: hidden;
 }
 
 /* Container for the entire web */
 #root {
-  max-width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem 2rem;
+  padding: 2rem 2rem;
   text-align: center;
-  height: 100vh;
-  overflow: hidden;
-  box-sizing: border-box;
 }
 
 /* Holds Title and start button */
@@ -49,9 +44,6 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  height: 100%;
-  max-height: 100%;
-  padding-bottom: 1.5rem;
 }
 
 h1{
@@ -59,10 +51,8 @@ h1{
   font-size: 2.5rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  margin-bottom: 0;
+  margin-bottom: 0.25rem;
   text-shadow: 0 0 30px rgba(162, 210, 255, 0.2);
-  flex-shrink: 0;
-  line-height: 1.2;
 }
 
 .game-layout{
@@ -71,13 +61,11 @@ h1{
   width: 100%;
   gap: 2rem;
   align-items: center;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  margin-top: 1rem;
 }
 
 .canvas-section{
-  flex: 5;
+  flex: 7;
   width: 100%;
   min-width: 0;
   height: 100%;
@@ -90,7 +78,7 @@ h1{
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 100%;
+  width: 80%;
   min-width: 260px;
 }
 
