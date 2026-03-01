@@ -62,12 +62,12 @@ h1{
   flex-direction: row;
   width: 100%;
   gap: 2rem;
-  align-items: flex-start; /* Keeps the UI panel aligned to the top of the graph */
+  align-items: center; /* Changed from flex-start to center */
   margin-top: 1rem;
 }
 
 .canvas-section{
-  flex:7;
+  flex:8;
   width: 100%;
   min-width: 0;
 }
@@ -111,6 +111,13 @@ h1{
 
 .primary-button:active {
   transform: scale(0.97);
+}
+
+.primary-button:disabled {
+  opacity:0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform:none;
 }
 
 /* hints section */
@@ -276,4 +283,40 @@ h1{
 .credits-link:hover {
   opacity: 1;
   color: var(--sky-blue);
+}
+
+/* dropdown css */
+.autocomplete-dropdown {
+  position: absolute;
+  top: 52px; /* Positions it right underneath the input box */
+  left: 0;
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(162, 210, 255, 0.4);
+  border-radius: 8px;
+  list-style: none;
+  z-index: 100; /* Forces it to hover above the guess button */
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.autocomplete-dropdown li {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  text-transform: capitalize;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background-color 0.2s ease, padding-left 0.2s ease;
+  text-align: left;
+}
+
+.autocomplete-dropdown li:hover {
+  background-color: rgba(162, 210, 255, 0.15);
+  padding-left: 1.25rem; /* Slight indent animation on hover */
+  color: var(--sky-blue);
+}
+
+.autocomplete-dropdown li:last-child {
+  border-bottom: none;
 }

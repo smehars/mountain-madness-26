@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Analyzer from "./components/analyzer";
 import TYPE_COLORS from "./utils/typeColors";
 
@@ -8,6 +8,7 @@ function getRandomInt(min, max) {
 }
 
 function App() {
+  const analyzerRef = useRef(null);
   const [pokemonID, setPokemonID] = useState(getRandomInt(1, 152));
   const [pokemonName, setPokemonName] = useState("");
   const [pokemonTypes, setPokemonTypes] = useState([]);
@@ -18,6 +19,8 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
   const [spriteUrl, setSpriteUrl] = useState(null);
+
+  const[allPokemon, setAllPokemon] = useState([]);
 
   const MAX_ROUNDS = 5;
 
@@ -39,11 +42,21 @@ function App() {
   // useEffect runs once on page load/reload
   useEffect(() => {
     fetchPokemonName();
+    fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+      .then((res) => res.json())
+      .then((data) => setAllPokemon(data.results.map(p => p.name)))
+      .catch((error) => console.error("Error fetching all Pokemon:", error))
   }, []);
 
-  function handleGuess() {
-    // win condition
-    if (guess.toLowerCase().trim() === pokemonName.toLowerCase()) {
+  const [showDropdown, setShowDropdown] = useState(true);
+
+  const suggestions = guess.trim().length > 0 && !gameOver && showDropdown
+    ? allPokemon.filter(name => name.startsWith(guess.toLowerCase())).slice(0, 5)
+    : [];
+
+  function handleGuess(overrideGuess) {
+    const finalGuess = typeof overrideGuess === "string" ? overrideGuess : guess;
+    if (finalGuess.toLowerCase().trim() === pokemonName.toLowerCase()) {
       // correct guess
       const rightSound = new Audio("/yayyyyyyyy.mp3");
       rightSound.play().catch((error) => {
@@ -92,7 +105,7 @@ function App() {
   const showLetterCount = round >= 2;      // Round 2+
   const showFirstLetter = round >= 3;      // Round 3+
   const showSilhouette = round >= 4;       // Round 4+
-  const showFullSprite = round >= 5;       // Round 5
+  const showFullSprite = round >= MAX_ROUNDS || gameOver;       // Round 5 or gameover
 
   // Build the name hint
   const nameHint = (() => {
@@ -114,15 +127,19 @@ return (
         
         {/* LEFT SIDE: The 3D Graph */}
         <div className="canvas-section">
-          <Analyzer audioUrl={audioUrl} terrainColors={terrainColors} />
+          <Analyzer ref={analyzerRef} audioUrl={audioUrl} terrainColors={terrainColors} />
         </div>
 
         {/* RIGHT SIDE: The UI Panel */}
         <div className="ui-section">
-          
+
+          <button className="primary-button" style={{ width: "100%" }} onClick={() => analyzerRef.current?.playAudio()}>
+            Play Audio
+          </button>
+
           <div className="hints-area">
             <p className="round-indicator">Round {round} / {MAX_ROUNDS}</p>
-            {nameHint && <p className="hint-text">💡 {nameHint} ({pokemonName.length} letters)</p>}
+            {nameHint && <p className="hint-text"> {nameHint} ({pokemonName.length} letters)</p>}
             {spriteUrl && (showSilhouette || showFullSprite) && (
               <div className="sprite-container">
                 <img
@@ -141,17 +158,38 @@ return (
 
           {!gameOver ? (
             <div className="guess-area">
-              {/* Note: I changed this to a flex-column so the input sits neatly above the button in the sidebar */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+              <div style={{ position: "relative", width: "100%" }}>
                 <input
                   type="text"
                   value={guess}
-                  onChange={(e) => setGuess(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleGuess()}
+                  onChange={(e) => {
+                    setGuess(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && guess.trim() && handleGuess()}
                   placeholder="Enter Pokémon name..."
                   className="guess-input"
+                  autoComplete="off"
                 />
-                <button className="primary-button" onClick={handleGuess}>
+                {suggestions.length > 0 && (
+                  <ul className="autocomplete-dropdown">
+                    {suggestions.map((name) => (
+                      <li
+                        key={name}
+                        onClick={() => {
+                          setGuess(name);
+                          setShowDropdown(false);
+                        }}
+                      >{name}</li>
+                    ))}
+                  </ul>
+                )}
+                <button 
+                  className="primary-button" 
+                  style={{ marginTop: "10px", width: "100%" }} 
+                  onClick={() => handleGuess(guess)}
+                  disabled={guess.trim() === ""}
+                >
                   Guess
                 </button>
               </div>
@@ -159,9 +197,9 @@ return (
           ) : (
             <div className="result-area">
               {won ? (
-                <p className="result-text win">🎉 Correct! It's {pokemonName}!</p>
+                <p className="result-text win">You got it right! It's {pokemonName}!</p>
               ) : (
-                <p className="result-text lose">😢 It was {pokemonName}!</p>
+                <p className="result-text lose"> Unfortunate 😢 It was {pokemonName}!</p>
               )}
               <button className="primary-button" onClick={getNewPokemon}>
                 New Pokemon
@@ -174,7 +212,7 @@ return (
 
       {/* footer w credits*/}
       <footer className="credits-footer">
-        <span className="credits-text">Made by Mehar</span>
+        <span className="credits-text">Made by Mehar :)</span>
         <a href="https://github.com/smehars" target="_blank" rel="noopener noreferrer" className="credits-link" aria-label="GitHub">
           <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.605-.015 2.896-.015 3.286 0 .315.21.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
         </a>

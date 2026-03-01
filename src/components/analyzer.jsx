@@ -1,6 +1,6 @@
 // acts as rendererer
 // gets audioURL from app and handles everything related to sound and graphics
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo, useImperativeHandle, forwardRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Text, Line } from "@react-three/drei";
 import "./analyzer.css";
@@ -450,7 +450,7 @@ function SoundTerrain({ historyMatrix, terrainColors, cubeSize }) {
   );
 }
 
-function Analyzer({ audioUrl, terrainColors }) {
+const Analyzer = forwardRef(function Analyzer({ audioUrl, terrainColors }, ref) {
   const audioCtxRef = useRef(null);
   const audioBufferRef = useRef(null);
   const [historyMatrix, setHistoryMatrix] = useState([]);
@@ -520,7 +520,6 @@ function Analyzer({ audioUrl, terrainColors }) {
     playbackStartTimeRef.current = audioCtxRef.current.currentTime; 
     isPlayingRef.current = true;
 
-    // When the audio finishes, turn the scanner off
     sourceNode.onended = () => {
       isPlayingRef.current = false;
     };
@@ -528,13 +527,14 @@ function Analyzer({ audioUrl, terrainColors }) {
     sourceNode.start(0);
   }
 
+  useImperativeHandle(ref, () => ({
+    playAudio,
+  }));
+
   const half = cubeSize / 2;
 
   return (
     <div className="analyzer-wrapper">
-      <button className="primary-button" onClick={playAudio}>
-        Play Audio
-      </button>
       <div className="canvas-wrapper">
         <Canvas
           camera={{
@@ -568,6 +568,6 @@ function Analyzer({ audioUrl, terrainColors }) {
       </div>
     </div>
   );
-}
+});
 
 export default Analyzer;
