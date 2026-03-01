@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   /* Pastel accents */
   --thistle: #cdb4db;
