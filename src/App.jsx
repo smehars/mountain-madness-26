@@ -10,24 +10,25 @@ function getRandomInt(min, max) {
 function App() {
   const [pokemonID, setPokemonID] = useState(getRandomInt(1, 152));
   const [pokemonName, setPokemonName] = useState("");
-  const [pokemonType, setPokemonType] = useState(null);
+  const [pokemonTypes, setPokemonTypes] = useState([]);
+  const [audioUrl, setAudioUrl] = useState(null);
   const [revealed, setRevealed] = useState(false);
-  const audioUrl = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${pokemonID}.ogg`;
+  // game logic
+  const [guesses, setGuesses] = useState([]); // Array to hold past guesses
+  const [currentGuess, setCurrentGuess] = useState(""); // What the user is typing
+  const [gameStatus, setGameStatus] = useState("playing"); // 'playing', 'won', 'lost'
 
-  // function playAudio(){
-  //   const audio = new Audio(audioUrl);
-  //   audio.play().catch(error => {
-  //     console.error('Error playing audio:', error);
-  //   });
-  // }
-
+  // A master list of all Gen 1 Pokemon names for the autocomplete dropdown
+  const [pokemonList, setPokemonList] = useState([]);
+  
   function fetchPokemonName(id = pokemonID) {
     const url = `https://pokeapi.co/api/v2/pokemon/${id}/`;
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
         setPokemonName(data.name);
-        setPokemonType(data.types[0].type.name);
+        setPokemonTypes(data.types.map((t) => t.type.name));
+        setAudioUrl(data.cries?.latest || data.cries?.legacy || null);
       })
       .catch((error) => {
         console.error("Error fetching Pokemon data:", error);
@@ -36,26 +37,53 @@ function App() {
 
   // useEffect runs once on page load/reload
   useEffect(() => {
+    fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+      .then((res) => res.json())
+      .then((data) => setPokemonList(data.results.map((p) => p.name)));
+
     fetchPokemonName();
   }, []);
 
+  const filteredPokemon = currentGuess.length > 0
+    ? pokemonList.filter( p => p.toLowerCase().includes(currentGuess.toLowerCase())).slice(0, 5)
+    : [];
+  
+  function handleGuess(guessName){
+    if(gameStatus !== "playing") return; // Ignore guesses if game is over
+
+    const newGuesses = [...guesses, guessName];
+    setGuesses(newGuesses);
+    setCurrentGuess("");
+    
+    if(guessName.toLowerCase() === pokemonName.toLowerCase()){
+      setGameStatus("won");
+    } else if(newGuesses.length >= 5){
+      setGameStatus("lost");
+    }
+  }
+
+  // round 1&2 : show the colored graph
+  // round 3: sprite given
+  // 
   function getNewPokemon() {
     const newID = getRandomInt(1, 152);
     setPokemonID(newID);
     fetchPokemonName(newID);
     setRevealed(false);
+    setAudioUrl(null);
   }
 
-  const terrainColor = revealed && pokemonType
-    ? TYPE_COLORS[pokemonType] || "#81A596"
-    : "#81A596";
+  // Build an array of terrain colors based on revealed types
+  const terrainColors =
+    revealed && pokemonTypes.length > 0
+      ? pokemonTypes.map((t) => TYPE_COLORS[t] || "#81A596")
+      : ["#81A596"];
 
   return (
     <div id="main-div">
       <h1>Pokemon Cry Wordle</h1>
 
-      {/* Graph + play button rendered by Analyzer */}
-      <Analyzer audioUrl={audioUrl} terrainColor={terrainColor} />
+      <Analyzer audioUrl={audioUrl} terrainColors={terrainColors} />
 
       {/* Buttons arranged horizontally beneath the graph */}
       <div className="button-row">
